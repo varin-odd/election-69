@@ -1,0 +1,368 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --ink: #1a1a1a;
+  --accent: #f06a24;
+  --accent-dark: #b7460b;
+  --paper: #f8efe0;
+  --soft: rgba(255, 255, 255, 0.85);
+  --shadow: 0 14px 30px rgba(70, 45, 15, 0.22);
+}
+
+body {
+  margin: 0;
+  font-family: "Sarabun", "Chakra Petch", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255, 235, 205, 0.9), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(255, 204, 160, 0.9), transparent 45%),
+    linear-gradient(180deg, #f9d9b3 0%, #f1cda0 45%, #e8b982 100%);
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 28px 44px;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.brand-mark {
+  font-family: "Chakra Petch", sans-serif;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff7b3a, #c34a0f);
+  color: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  letter-spacing: 1px;
+}
+
+.brand-title {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.brand-sub {
+  font-size: 15px;
+  opacity: 0.7;
+}
+
+.tagline {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 12px 18px;
+  text-align: right;
+  box-shadow: var(--shadow);
+  border: 3px solid #f8dcc2;
+}
+
+.tagline-main {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #2b4c7e;
+}
+
+.tagline-sub {
+  font-size: 14px;
+  font-weight: 600;
+  color: #cc4b1f;
+}
+
+.tagline-hash {
+  font-size: 14px;
+  color: #355d9a;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.left-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.zone-title {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.party-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: 118px;
+  gap: 14px;
+}
+
+.party-card {
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent),
+    var(--party-color);
+  color: #fff;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 3px solid rgba(255, 255, 255, 0.75);
+}
+
+.party-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent);
+}
+
+.party-card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.party-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.party-code {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.party-seat {
+  position: relative;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.78);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: fit-content;
+}
+
+.seat-number {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.seat-label {
+  font-size: 14px;
+}
+
+.size-1 {
+  grid-column: span 3;
+  grid-row: span 2;
+}
+
+.size-2,
+.size-3 {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.size-4,
+.size-5 {
+  grid-column: span 3;
+  grid-row: span 1;
+}
+
+.right-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-group-title {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2b4c7e;
+}
+
+.stat-card {
+  background: var(--soft);
+  border: 2px solid #e1c5a0;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.stat-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stat-value {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 6px 0;
+}
+
+.stat-note {
+  font-size: 14px;
+  opacity: 0.75;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-btn {
+  text-decoration: none;
+  color: #fff;
+  background: #2b4c7e;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+
+.page-btn[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.page-info {
+  font-weight: 600;
+  color: #5b4b3b;
+}
+
+.hover-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #e1c5a0;
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.hover-panel.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hover-title {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #2b4c7e;
+}
+
+.hover-body {
+  font-size: 14px;
+  color: #4c3d2e;
+}
+
+.hover-list {
+  display: grid;
+  gap: 8px;
+}
+
+.hover-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(160px, 1.3fr) minmax(80px, 0.6fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+.hover-col {
+  font-size: 14px;
+  color: #4c3d2e;
+}
+
+.hover-col-right {
+  text-align: right;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .hover-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hover-col-right {
+    text-align: left;
+  }
+}
+
+@media (max-width: 1024px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .party-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .size-1,
+  .size-2,
+  .size-3,
+  .size-4,
+  .size-5 {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  .top-bar {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 20px 16px 32px;
+  }
+
+  .brand-title {
+    font-size: 24px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+  }
+}
