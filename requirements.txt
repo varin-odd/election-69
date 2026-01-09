@@ -2,3 +2,5 @@ flask
 pandas
 python-dotenv
 requests
+functions-framework
+gunicorn
