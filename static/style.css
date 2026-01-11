@@ -307,6 +307,65 @@ body {
   color: #2b4c7e;
 }
 
+.hover-party-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.hover-party-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5b4b3b;
+}
+
+.hover-party-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.hover-party-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: #fff9f2;
+  border-radius: 12px;
+  padding: 8px 10px;
+  border: 1px solid #f0dcc2;
+}
+
+.hover-party-info {
+  display: grid;
+  gap: 2px;
+}
+
+.hover-party-meta {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b4642a;
+}
+
+.hover-party-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b4c7e;
+}
+
+.hover-party-photo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e1c5a0;
+  background: #fff;
+}
+
+.hover-party-note {
+  font-size: 12px;
+  color: #5b4b3b;
+}
+
 .hover-list {
   display: grid;
   gap: 8px;
@@ -457,6 +516,11 @@ body {
 
   .hover-col-right {
     text-align: left;
+  }
+
+  .hover-party-row {
+    grid-template-columns: 1fr;
+    justify-items: start;
   }
 
   .referendum {

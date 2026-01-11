@@ -47,6 +47,7 @@
             <div class="hover-title" id="hover-title">รายละเอียดผู้ชนะเขต</div>
             <div class="hover-body" id="hover-body">เลื่อนเมาส์เหนือการ์ดพรรคเพื่อดูข้อมูล</div>
             <div class="hover-footer" id="hover-footer">สส.บัญชีรายชื่อ: - ที่นั่ง</div>
+            <div class="hover-party-list" id="hover-party-list"></div>
           </div>
           <div class="pagination">
             <a class="page-btn" href="{{ url_for('index', page=page-1) }}" aria-disabled="{{ page <= 1 }}">
@@ -148,6 +149,7 @@
       const title = document.getElementById("hover-title");
       const body = document.getElementById("hover-body");
       const footer = document.getElementById("hover-footer");
+      const partyList = document.getElementById("hover-party-list");
       let activeCode = null;
 
       const formatInt = (value) => {
@@ -188,6 +190,60 @@
         body.appendChild(list);
       };
 
+      const renderPartyList = (rows, totalSeats) => {
+        if (!totalSeats || !rows.length) {
+          partyList.textContent = "ไม่มีรายชื่อบัญชีรายชื่อในพรรคนี้";
+          return;
+        }
+        const wrapper = document.createElement("div");
+        const label = document.createElement("div");
+        label.className = "hover-party-title";
+        label.textContent = `รายชื่ออันดับ 1-${rows.length} จาก ${formatInt(totalSeats)} ที่นั่ง`;
+        wrapper.appendChild(label);
+
+        const list = document.createElement("div");
+        list.className = "hover-party-rows";
+        rows.forEach((row) => {
+          const item = document.createElement("div");
+          item.className = "hover-party-row";
+
+          const meta = document.createElement("div");
+          meta.className = "hover-party-meta";
+          meta.textContent = `#${formatInt(row.number)}`;
+
+          const name = document.createElement("div");
+          name.className = "hover-party-name";
+          name.textContent = row.isPmCandidate ? `${row.name}*` : row.name;
+
+          const info = document.createElement("div");
+          info.className = "hover-party-info";
+          info.appendChild(meta);
+          info.appendChild(name);
+
+          item.appendChild(info);
+
+          if (row.photoUrl) {
+            const img = document.createElement("img");
+            img.className = "hover-party-photo";
+            img.src = row.photoUrl;
+            img.alt = row.name;
+            img.loading = "lazy";
+            item.appendChild(img);
+          }
+
+          list.appendChild(item);
+        });
+        wrapper.appendChild(list);
+
+        const note = document.createElement("div");
+        note.className = "hover-party-note";
+        note.textContent = "* เป็นรายชื่อแคนดิเดตนายกรัฐมนตรี";
+        wrapper.appendChild(note);
+
+        partyList.innerHTML = "";
+        partyList.appendChild(wrapper);
+      };
+
       document.querySelectorAll(".party-card").forEach((card) => {
         card.addEventListener("click", async () => {
           const code = card.dataset.partyCode;
@@ -196,6 +252,7 @@
           body.textContent = "กำลังโหลดข้อมูล...";
           title.textContent = "รายละเอียดผู้ชนะเขต";
           footer.textContent = "สส.บัญชีรายชื่อ: - ที่นั่ง";
+          partyList.textContent = "กำลังโหลดรายชื่อบัญชีรายชื่อ...";
           panel.classList.add("is-visible");
           panel.scrollIntoView({ behavior: "smooth", block: "start" });
           try {
@@ -205,9 +262,11 @@
             title.textContent = `รายละเอียดผู้ชนะเขต ${formatInt(data.constituencySeats)} ที่นั่ง`;
             footer.textContent = `สส.บัญชีรายชื่อ: ${formatInt(data.partyListSeats)} ที่นั่ง`;
             renderList(data.candidates || []);
+            renderPartyList(data.partyList || [], data.partyListSeats);
           } catch (error) {
             if (activeCode !== code) return;
             body.textContent = "โหลดข้อมูลไม่สำเร็จ";
+            partyList.textContent = "โหลดข้อมูลไม่สำเร็จ";
           }
         });
       });

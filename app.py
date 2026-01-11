@@ -146,6 +146,32 @@ def load_party_seats(party_code):
     return {"constituencySeats": 0, "partyListSeats": 0}
 
 
+def load_party_list_members(party_code, limit):
+    if limit <= 0:
+        return []
+    path = os.path.join(DATA_PATH, "M_PARTY_LIST.csv")
+    if not os.path.exists(path):
+        return []
+    members = []
+    with open(path, encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            if row.get("partyCode") != str(party_code):
+                continue
+            number = parse_int(row.get("number"))
+            pm_rank = str(row.get("pmCandidateRank", "")).strip()
+            members.append(
+                {
+                    "number": number,
+                    "name": row.get("name", "").strip(),
+                    "photoUrl": row.get("photoUrl", "").strip(),
+                    "isPmCandidate": pm_rank not in ("", "0", "0.0"),
+                }
+            )
+    members.sort(key=lambda item: item["number"])
+    return members[:limit]
+
+
 @app.route("/")
 def index():
     page = parse_int(request.args.get("page", 1))
@@ -179,12 +205,14 @@ def index():
 def party_candidates(party_code):
     candidates = load_rank1_candidates(party_code)
     seats = load_party_seats(party_code)
+    party_list = load_party_list_members(party_code, seats["partyListSeats"])
     return jsonify(
         {
             "partyCode": party_code,
             "candidates": candidates,
             "constituencySeats": seats["constituencySeats"],
             "partyListSeats": seats["partyListSeats"],
+            "partyList": party_list,
         }
     )
 
