@@ -69,6 +69,47 @@ def load_top_parties():
     return cleaned
 
 
+def load_referendum_questions():
+    path = os.path.join(DATA_PATH, "F_RF.csv")
+    questions = []
+    if not os.path.exists(path):
+        return questions
+    with open(path, encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            total_votes = parse_int(row.get("totalVotes"))
+            agree_votes = parse_int(row.get("agreeTotalVotes"))
+            disagree_votes = parse_int(row.get("disagreeTotalVotes"))
+            no_votes = parse_int(row.get("noVotes"))
+            invalid_votes = parse_int(row.get("invalidVotes"))
+            if total_votes > 0:
+                agree_pct = agree_votes / total_votes * 100
+                disagree_pct = disagree_votes / total_votes * 100
+                no_pct = no_votes / total_votes * 100
+                invalid_pct = invalid_votes / total_votes * 100
+            else:
+                agree_pct = 0.0
+                disagree_pct = 0.0
+                no_pct = 0.0
+                invalid_pct = 0.0
+            questions.append(
+                {
+                    "questionNumber": parse_int(row.get("questionNumber")),
+                    "questionText": row.get("questionText", ""),
+                    "agreeVotes": format_int(agree_votes),
+                    "disagreeVotes": format_int(disagree_votes),
+                    "noVotes": format_int(no_votes),
+                    "invalidVotes": format_int(invalid_votes),
+                    "totalVotes": format_int(total_votes),
+                    "agreePct": f"{agree_pct:.1f}",
+                    "disagreePct": f"{disagree_pct:.1f}",
+                    "noPct": f"{no_pct:.1f}",
+                    "invalidPct": f"{invalid_pct:.1f}",
+                }
+            )
+    return questions
+
+
 def load_rank1_candidates(party_code):
     path = os.path.join(DATA_PATH, "F_DBD_4.csv")
     results = []
@@ -91,6 +132,20 @@ def load_rank1_candidates(party_code):
     return results
 
 
+def load_party_seats(party_code):
+    path = os.path.join(DATA_PATH, "F_DB_3.csv")
+    with open(path, encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            if row.get("partyCode") != str(party_code):
+                continue
+            return {
+                "constituencySeats": parse_int(row.get("constituencySeats")),
+                "partyListSeats": parse_int(row.get("partyListSeats")),
+            }
+    return {"constituencySeats": 0, "partyListSeats": 0}
+
+
 @app.route("/")
 def index():
     page = parse_int(request.args.get("page", 1))
@@ -101,6 +156,7 @@ def index():
     stats_constituency = load_party_list_stats("c")
 
     parties = load_top_parties()
+    referendum_questions = load_referendum_questions()
     total_parties = len(parties)
     total_pages = max((total_parties + per_page - 1) // per_page, 1)
     page = min(page, total_pages)
@@ -113,6 +169,7 @@ def index():
         stats_party_list=stats_party_list,
         stats_constituency=stats_constituency,
         parties=paged_parties,
+        referendum_questions=referendum_questions,
         page=page,
         total_pages=total_pages,
     )
@@ -121,7 +178,15 @@ def index():
 @app.route("/party/<party_code>")
 def party_candidates(party_code):
     candidates = load_rank1_candidates(party_code)
-    return jsonify({"partyCode": party_code, "candidates": candidates})
+    seats = load_party_seats(party_code)
+    return jsonify(
+        {
+            "partyCode": party_code,
+            "candidates": candidates,
+            "constituencySeats": seats["constituencySeats"],
+            "partyListSeats": seats["partyListSeats"],
+        }
+    )
 
 
 if __name__ == "__main__":

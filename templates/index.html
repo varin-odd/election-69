@@ -44,8 +44,9 @@
             {% endfor %}
           </div>
           <div class="hover-panel" id="hover-panel" aria-live="polite">
-            <div class="hover-title">รายละเอียดผู้ชนะเขต</div>
+            <div class="hover-title" id="hover-title">รายละเอียดผู้ชนะเขต</div>
             <div class="hover-body" id="hover-body">เลื่อนเมาส์เหนือการ์ดพรรคเพื่อดูข้อมูล</div>
+            <div class="hover-footer" id="hover-footer">สส.บัญชีรายชื่อ: - ที่นั่ง</div>
           </div>
           <div class="pagination">
             <a class="page-btn" href="{{ url_for('index', page=page-1) }}" aria-disabled="{{ page <= 1 }}">
@@ -98,11 +99,62 @@
           </div>
         </aside>
       </section>
+
+      <section class="referendum">
+        <div class="referendum-header">
+          <div class="referendum-title">ผลลงคะแนนประชามติ</div>
+          <div class="referendum-subtitle">แสดงผล 2 คำถามจากข้อมูลล่าสุด</div>
+        </div>
+        <div class="referendum-grid">
+          {% for item in referendum_questions %}
+          <article class="referendum-card">
+            <div class="referendum-question">
+              <div class="referendum-label">คำถามที่ {{ item.questionNumber }}</div>
+              <div class="referendum-text">{{ item.questionText }}</div>
+            </div>
+            <div class="referendum-result">
+              <div class="referendum-bar">
+                <div class="referendum-segment agree" style="width: {{ item.agreePct }}%">
+                  <span class="segment-title">เห็นด้วย</span>
+                  <span class="segment-value">{{ item.agreePct }}%</span>
+                </div>
+                <div class="referendum-segment disagree" style="width: {{ item.disagreePct }}%">
+                  <span class="segment-title">ไม่เห็นด้วย</span>
+                  <span class="segment-value">{{ item.disagreePct }}%</span>
+                </div>
+                <div class="referendum-segment abstain" style="width: {{ item.noPct }}%">
+                  <span class="segment-title">งดออกเสียง</span>
+                  <span class="segment-value">{{ item.noPct }}%</span>
+                </div>
+                <div class="referendum-segment invalid" style="width: {{ item.invalidPct }}%">
+                  <span class="segment-title">บัตรเสีย</span>
+                  <span class="segment-value">{{ item.invalidPct }}%</span>
+                </div>
+              </div>
+              <div class="referendum-meta">
+                เห็นด้วย {{ item.agreeVotes }} | ไม่เห็นด้วย {{ item.disagreeVotes }} | งดออกเสียง {{ item.noVotes }} | บัตรเสีย {{ item.invalidVotes }} | รวม {{ item.totalVotes }}
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+          {% if referendum_questions|length == 0 %}
+          <div class="referendum-empty">ยังไม่มีข้อมูลประชามติในขณะนี้</div>
+          {% endif %}
+        </div>
+      </section>
     </main>
     <script>
       const panel = document.getElementById("hover-panel");
+      const title = document.getElementById("hover-title");
       const body = document.getElementById("hover-body");
+      const footer = document.getElementById("hover-footer");
       let activeCode = null;
+
+      const formatInt = (value) => {
+        const number = Number(value);
+        if (Number.isNaN(number)) return "0";
+        return number.toLocaleString("th-TH");
+      };
 
       const renderList = (rows) => {
         if (!rows.length) {
@@ -142,12 +194,16 @@
           if (!code) return;
           activeCode = code;
           body.textContent = "กำลังโหลดข้อมูล...";
+          title.textContent = "รายละเอียดผู้ชนะเขต";
+          footer.textContent = "สส.บัญชีรายชื่อ: - ที่นั่ง";
           panel.classList.add("is-visible");
           panel.scrollIntoView({ behavior: "smooth", block: "start" });
           try {
             const response = await fetch(`/party/${code}`);
             const data = await response.json();
             if (activeCode !== code) return;
+            title.textContent = `รายละเอียดผู้ชนะเขต ${formatInt(data.constituencySeats)} ที่นั่ง`;
+            footer.textContent = `สส.บัญชีรายชื่อ: ${formatInt(data.partyListSeats)} ที่นั่ง`;
             renderList(data.candidates || []);
           } catch (error) {
             if (activeCode !== code) return;

@@ -298,6 +298,15 @@ body {
   color: #4c3d2e;
 }
 
+.hover-footer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e1c5a0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b4c7e;
+}
+
 .hover-list {
   display: grid;
   gap: 8px;
@@ -320,6 +329,127 @@ body {
   font-weight: 600;
 }
 
+.referendum {
+  margin-top: 32px;
+  background: linear-gradient(135deg, rgba(242, 232, 218, 0.85), rgba(255, 255, 255, 0.95));
+  border-radius: 22px;
+  padding: 28px;
+  border: 2px solid #e1c5a0;
+  box-shadow: var(--shadow);
+}
+
+.referendum-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.referendum-title {
+  font-family: "Chakra Petch", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b4c7e;
+}
+
+.referendum-subtitle {
+  font-size: 14px;
+  color: #5b4b3b;
+}
+
+.referendum-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.referendum-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  border: 1px solid #efe2d0;
+  box-shadow: 0 10px 24px rgba(43, 76, 126, 0.08);
+}
+
+.referendum-question {
+  margin-bottom: 12px;
+}
+
+.referendum-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #d15a1a;
+  margin-bottom: 6px;
+}
+
+.referendum-text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #3a2d22;
+}
+
+.referendum-result {
+  display: grid;
+  gap: 10px;
+}
+
+.referendum-bar {
+  display: flex;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid #9c8a78;
+  background: #f7f2ea;
+  min-height: 64px;
+}
+
+.referendum-segment {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 14px;
+  color: #fff;
+  min-width: 90px;
+}
+
+.referendum-segment .segment-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.referendum-segment .segment-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.referendum-segment.agree {
+  background: #2f7d2b;
+}
+
+.referendum-segment.disagree {
+  background: #b52a1e;
+}
+
+.referendum-segment.abstain {
+  background: #585858;
+}
+
+.referendum-segment.invalid {
+  background: #8f6b3e;
+}
+
+.referendum-meta {
+  font-size: 13px;
+  color: #5b4b3b;
+}
+
+.referendum-empty {
+  font-size: 14px;
+  color: #5b4b3b;
+  padding: 12px 0;
+}
+
 @media (max-width: 640px) {
   .hover-row {
     grid-template-columns: 1fr;
@@ -327,6 +457,19 @@ body {
 
   .hover-col-right {
     text-align: left;
+  }
+
+  .referendum {
+    padding: 20px;
+  }
+
+  .referendum-segment {
+    min-width: 70px;
+    padding: 10px;
+  }
+
+  .referendum-segment .segment-value {
+    font-size: 22px;
   }
 }
 
