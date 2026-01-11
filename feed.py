@@ -27,6 +27,50 @@ def M_provinces():
             return True
     raise Exception(f'feed.py: M_provinces() failed')
 
+def get_all_pages_partyLists(electionId):
+    partyLists = []
+    page = 1
+    limit = 1000
+
+    while True:
+        url = f'{BASE_URL}/party-list/{electionId}?page={page}&limit={limit}'
+        response = requests.get(url, headers=HEADERS)
+
+        if response.status_code != 200:
+           raise Exception(f'feed.py: M_party_list failed')
+        data = response.json()
+        if not data['success']:
+           raise Exception(f'feed.py: M_party_list failed')
+
+        # ดึงข้อมูลของหน้านั้น
+        cd = data["data"]["partyLists"]
+        partyLists.extend(cd)
+        # อ่านข้อมูล pagination
+        pagination = data["data"]["pagination"]
+        total_pages = pagination["totalPages"]
+        if DEBUG: print(f"Fetched page {page}/{total_pages}, items: {len(cd)}")
+
+        if page >= total_pages:
+            break
+        page += 1
+
+    return partyLists
+def M_party_list(electionId):
+    partyLists = get_all_pages_partyLists(electionId)
+    df = pd.DataFrame(partyLists)
+    df_p = pd.json_normalize(df["party"])
+    df = df.join(df_p.add_prefix("party"))
+    df = df.rename(columns=
+        {
+            "partyid": "partyId",
+            "partycode": "partyCode",
+            "partyname": "partyName",
+            "partycolor": "partyColor"
+        })
+    df = df[["id", "number", "title", "firstName", "lastName", "name", "photoUrl", "pmCandidateRank",
+             "partyId", "partyCode", "partyName", "partyabbreviation", "partyColor"]]
+    M_to_csv(df, 'PARTY_LIST')
+
 def F_to_csv(df, type, filename, mode='w'):
     backup = f'{BACKUP_PATH}F_{type[0].upper()}_{filename}_{datetime.now().strftime(TS_FORMAT)}.csv'
     data = f'{DATA_PATH}F_{type[0].upper()}_{filename}.csv'
@@ -171,6 +215,10 @@ if __name__ == '__main__':
         mp_party_list_id = (df.loc[df["type"] == "mp_party_list", "id"].squeeze())
         mp_constituency_id = (df.loc[df["type"] == "mp_constituency", "id"].squeeze())
         referendum_id = (df.loc[df["type"] == "referendum", "id"].squeeze())
+
+        if MASTER:
+            # ส.ส. บัญชีรายชื่อ
+            M_party_list(mp_party_list_id)
 
         if FEED_DB_1_3:
             # อาสาสมัคร
