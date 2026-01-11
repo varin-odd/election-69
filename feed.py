@@ -5,6 +5,35 @@ import requests
 
 HEADERS = {'Authorization': 'Bearer ' + ODD_KEY}
 
+def get_all_pages(url, function_name, key_name):
+    items = []
+    page = 1
+    limit = 1000
+
+    while True:
+        paged_url = f'{url}?page={page}&limit={limit}'
+        response = requests.get(paged_url, headers=HEADERS)
+
+        if response.status_code != 200:
+           raise Exception(f'feed.py: {function_name} failed')
+        data = response.json()
+        if not data['success']:
+           raise Exception(f'feed.py: {function_name} failed')
+
+        # ดึงข้อมูลของหน้านั้น
+        cd = data["data"][key_name]
+        items.extend(cd)
+        # อ่านข้อมูล pagination
+        pagination = data["data"]["pagination"]
+        total_pages = pagination["totalPages"]
+        if DEBUG: print(f"Fetched page {page}/{total_pages}, items: {len(cd)}")
+
+        if page >= total_pages:
+            break
+        page += 1
+
+    return items
+
 def M_to_csv(df, filename):
     df.to_csv(f'{BACKUP_PATH}M_{filename}_{datetime.now().strftime(TS_FORMAT)}.csv', index=False, encoding="utf-8-sig")
     df.to_csv(f'{DATA_PATH}M_{filename}.csv', index=False, encoding="utf-8-sig")
@@ -27,36 +56,8 @@ def M_provinces():
             return True
     raise Exception(f'feed.py: M_provinces() failed')
 
-def get_all_pages_partyLists(electionId):
-    partyLists = []
-    page = 1
-    limit = 1000
-
-    while True:
-        url = f'{BASE_URL}/party-list/{electionId}?page={page}&limit={limit}'
-        response = requests.get(url, headers=HEADERS)
-
-        if response.status_code != 200:
-           raise Exception(f'feed.py: M_party_list failed')
-        data = response.json()
-        if not data['success']:
-           raise Exception(f'feed.py: M_party_list failed')
-
-        # ดึงข้อมูลของหน้านั้น
-        cd = data["data"]["partyLists"]
-        partyLists.extend(cd)
-        # อ่านข้อมูล pagination
-        pagination = data["data"]["pagination"]
-        total_pages = pagination["totalPages"]
-        if DEBUG: print(f"Fetched page {page}/{total_pages}, items: {len(cd)}")
-
-        if page >= total_pages:
-            break
-        page += 1
-
-    return partyLists
 def M_party_list(electionId):
-    partyLists = get_all_pages_partyLists(electionId)
+    partyLists = get_all_pages(f'{BASE_URL}/party-list/{electionId}', 'M_party_list', 'partyLists')
     df = pd.DataFrame(partyLists)
     df_p = pd.json_normalize(df["party"])
     df = df.join(df_p.add_prefix("party"))
@@ -124,36 +125,8 @@ def F_DB_2_3_national_summary(electionId, type):
             return True
     raise Exception(f'feed.py: F_DB_2_3_national_summary(type="{type}") failed')
 
-def get_all_pages_candidates(electionId, type):
-    candidates = []
-    page = 1
-    limit = 1000
-
-    while True:
-        url = f'{BASE_URL}/elections/{electionId}/{type}/candidates?page={page}&limit={limit}'
-        response = requests.get(url, headers=HEADERS)
-
-        if response.status_code != 200:
-           raise Exception(f'feed.py: F_DBD_4_candidates(type="{type}") failed')
-        data = response.json()
-        if not data['success']:
-           raise Exception(f'feed.py: F_DBD_4_candidates(type="{type}") failed')
-
-        # ดึงข้อมูลของหน้านั้น
-        cd = data["data"]["candidates"]
-        candidates.extend(cd)
-        # อ่านข้อมูล pagination
-        pagination = data["data"]["pagination"]
-        total_pages = pagination["totalPages"]
-        if DEBUG: print(f"Fetched page {page}/{total_pages}, items: {len(cd)}")
-
-        if page >= total_pages:
-            break
-        page += 1
-
-    return candidates
 def F_DBD_4_candidates(electionId, type):
-    candidates = get_all_pages_candidates(electionId, type)
+    candidates = get_all_pages(f'{BASE_URL}/elections/{electionId}/{type}/candidates', 'F_DBD_4_candidates(type="{type}")', 'candidates')
     df = pd.DataFrame(candidates)
     df_p = pd.json_normalize(df["party"])
     df = df.join(df_p.add_prefix("party"))
