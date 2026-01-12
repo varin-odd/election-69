@@ -4,7 +4,7 @@ import glob, os, shutil
 
 # To-do: เพิ่ม all history files
 
-M_FEEDS = ["M_ELECTIONS", "M_PROVINCES", "M_PARTY_LIST"]
+M_FEEDS = ["M_ELECTIONS", "M_PROVINCES", "M_PARTY_LIST", "M_CANDIDATES"]
 F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4",
            "F_F_DB_1", "F_F_DB_2", "F_F_DB_3", "F_F_DBD_4"]
 S_FEEDS = ["F_F_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime

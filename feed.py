@@ -56,6 +56,7 @@ def M_provinces():
             return True
     raise Exception(f'feed.py: M_provinces() failed')
 
+# Many pages
 def M_party_list(electionId):
     partyLists = get_all_pages(f'{BASE_URL}/party-list/{electionId}', 'M_party_list', 'partyLists')
     df = pd.DataFrame(partyLists)
@@ -71,6 +72,42 @@ def M_party_list(electionId):
     df = df[["id", "number", "title", "firstName", "lastName", "name", "photoUrl", "pmCandidateRank",
              "partyId", "partyCode", "partyName", "partyabbreviation", "partyColor"]]
     M_to_csv(df, 'PARTY_LIST')
+
+# น่าจะไม่ได้ใช้
+def M_candidates():
+    candidates = get_all_pages(f'{BASE_URL}/candidates', 'M_candidates', 'candidates')
+    df = pd.DataFrame(candidates)
+    df_p = pd.json_normalize(df["party"])
+    df = df.join(df_p.add_prefix("party"))
+    df = df.rename(columns=
+        {
+            "partyid": "partyId",
+            "partycode": "partyCode",
+            "partyname": "partyName",
+            "partycolor": "partyColor"
+        })
+    df_p = pd.json_normalize(df["province"])
+    df = df.join(df_p.add_prefix("province"))
+    df = df.rename(columns=
+        {
+            "provinceid": "provinceId",
+            "provincecode": "provinceCode",
+            "provincename": "provinceName",
+            "provinceregion": "provinceRegion"
+        })
+    df_p = pd.json_normalize(df["electionArea"])
+    df = df.join(df_p.add_prefix("electionArea"))
+    df = df.rename(columns=
+        {
+            "electionAreaid": "electionAreaId",
+            "electionAreaname": "electionAreaName",
+            "electionAreaareaNumber": "electionAreaAreaNumber",
+        })
+    df = df[["id", "electionId", "electionAreaId", "number", "title", "firstName", "lastName", "name", "photoUrl",
+             "partyId", "partyCode", "partyName", "partyColor",
+             "provinceId", "provinceCode", "provinceName", "provinceRegion",
+             "electionAreaId", "electionAreaName", "electionAreaAreaNumber"]]
+    M_to_csv(df, 'CANDIDATES')
 
 def F_to_csv(df, type, filename, mode='w'):
     backup = f'{BACKUP_PATH}F_{type[0].upper()}_{filename}_{datetime.now().strftime(TS_FORMAT)}.csv'
@@ -125,6 +162,7 @@ def F_DB_2_3_national_summary(electionId, type):
             return True
     raise Exception(f'feed.py: F_DB_2_3_national_summary(type="{type}") failed')
 
+# Many pages
 def F_DBD_4_candidates(electionId, type):
     candidates = get_all_pages(f'{BASE_URL}/elections/{electionId}/{type}/candidates', 'F_DBD_4_candidates(type="{type}")', 'candidates')
     df = pd.DataFrame(candidates)
@@ -183,6 +221,8 @@ if __name__ == '__main__':
         if MASTER:
             M_elections()
             M_provinces()
+            # น่าจะไม่ได้ใช้
+            # M_candidates() # มี photoUrl ด้วยแต่พวก party list ไม่มีรายชื่ออยู่ในนี้
 
         df = pd.read_csv(DATA_PATH + 'M_ELECTIONS.csv')
         mp_party_list_id = (df.loc[df["type"] == "mp_party_list", "id"].squeeze())
