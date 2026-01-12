@@ -30,6 +30,7 @@ def load_party_list_stats(election_id):
                     turnout_value = 0.0
                 return {
                     "turnout_percent": f"{turnout_value:.1f}",
+                    "turnout_value": turnout_value,
                     "good_votes": format_int(row.get("goodVotes")),
                     "total_votes": format_int(row.get("totalVotes")),
                     "invalid_votes": format_int(row.get("invalidVotes")),
@@ -38,11 +39,28 @@ def load_party_list_stats(election_id):
                 }
     return {
         "turnout_percent": "0.0",
+        "turnout_value": 0.0,
         "good_votes": "0",
         "total_votes": "0",
         "invalid_votes": "0",
         "no_votes": "0",
         "eligible_voters": "0",
+    }
+
+
+def load_combined_stats():
+    party_list = load_party_list_stats("p")
+    constituency = load_party_list_stats("c")
+
+    turnout_value = (party_list["turnout_value"] + constituency["turnout_value"]) / 2
+    turnout_percent = f"{turnout_value:.1f}"
+    return {
+        "turnout_percent": turnout_percent,
+        "total_votes": constituency["total_votes"],
+        "eligible_voters": constituency["eligible_voters"],
+        "good_votes": party_list["good_votes"],
+        "invalid_votes": party_list["invalid_votes"],
+        "no_votes": party_list["no_votes"],
     }
 
 
@@ -178,8 +196,7 @@ def index():
     page = max(page, 1)
     per_page = 5
 
-    stats_party_list = load_party_list_stats("p")
-    stats_constituency = load_party_list_stats("c")
+    stats_combined = load_combined_stats()
 
     parties = load_top_parties()
     referendum_questions = load_referendum_questions()
@@ -192,8 +209,7 @@ def index():
 
     return render_template(
         "index.html",
-        stats_party_list=stats_party_list,
-        stats_constituency=stats_constituency,
+        stats_combined=stats_combined,
         parties=paged_parties,
         referendum_questions=referendum_questions,
         page=page,

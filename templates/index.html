@@ -61,41 +61,22 @@
         </div>
 
         <aside class="right-zone">
-          <div class="stat-group">
-            <div class="stat-group-title">ส.ส.บัญชีรายชื่อ</div>
-            <div class="stat-card">
+          <div class="stat-group stat-group-combined">
+            <div class="stat-group-title">สถิติภาพรวม ส.ส.</div>
+            <div class="stat-card stat-card-turnout">
               <div class="stat-title">ผลการนับคะแนน</div>
-              <div class="stat-value">{{ stats_party_list.turnout_percent }}%</div>
-              <div class="stat-note">ผู้มาใช้สิทธิคิดเป็นสัดส่วน</div>
+              <div class="stat-value">{{ stats_combined.turnout_percent }}%</div>
+              <div class="stat-note"></div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card stat-card-voters">
               <div class="stat-title">จำนวนผู้มาใช้สิทธิ</div>
-              <div class="stat-value">{{ stats_party_list.total_votes }}</div>
-              <div class="stat-note">จากผู้มีสิทธิ {{ stats_party_list.eligible_voters }} คน</div>
+              <div class="stat-value">{{ stats_combined.total_votes }}</div>
+              <div class="stat-note">จากผู้มีสิทธิ {{ stats_combined.eligible_voters }} คน</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card stat-card-ballots">
               <div class="stat-title">จำนวนบัตรดี</div>
-              <div class="stat-value">{{ stats_party_list.good_votes }}</div>
-              <div class="stat-note">บัตรเสีย {{ stats_party_list.invalid_votes }} ใบ | ไม่ประสงค์ลงคะแนน {{ stats_party_list.no_votes }} ใบ</div>
-            </div>
-          </div>
-
-          <div class="stat-group">
-            <div class="stat-group-title">ส.ส.แบ่งเขต</div>
-            <div class="stat-card">
-              <div class="stat-title">ผลการนับคะแนน</div>
-              <div class="stat-value">{{ stats_constituency.turnout_percent }}%</div>
-              <div class="stat-note">ผู้มาใช้สิทธิคิดเป็นสัดส่วน</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-title">จำนวนผู้มาใช้สิทธิ</div>
-              <div class="stat-value">{{ stats_constituency.total_votes }}</div>
-              <div class="stat-note">จากผู้มีสิทธิ {{ stats_constituency.eligible_voters }} คน</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-title">จำนวนบัตรดี</div>
-              <div class="stat-value">{{ stats_constituency.good_votes }}</div>
-              <div class="stat-note">บัตรเสีย {{ stats_constituency.invalid_votes }} ใบ | ไม่ประสงค์ลงคะแนน {{ stats_constituency.no_votes }} ใบ</div>
+              <div class="stat-value">{{ stats_combined.good_votes }}</div>
+              <div class="stat-note">บัตรเสีย {{ stats_combined.invalid_votes }} ใบ | ไม่ประสงค์ลงคะแนน {{ stats_combined.no_votes }} ใบ</div>
             </div>
           </div>
         </aside>
@@ -104,13 +85,13 @@
       <section class="referendum">
         <div class="referendum-header">
           <div class="referendum-title">ผลลงคะแนนประชามติ</div>
-          <div class="referendum-subtitle">แสดงผล 2 คำถามจากข้อมูลล่าสุด</div>
+          <div class="referendum-subtitle"></div>
         </div>
         <div class="referendum-grid">
-          {% for item in referendum_questions %}
+          {% if referendum_questions|length > 0 %}
+          {% set item = referendum_questions[0] %}
           <article class="referendum-card">
             <div class="referendum-question">
-              <div class="referendum-label">คำถามที่ {{ item.questionNumber }}</div>
               <div class="referendum-text">{{ item.questionText }}</div>
             </div>
             <div class="referendum-result">
@@ -137,8 +118,7 @@
               </div>
             </div>
           </article>
-          {% endfor %}
-          {% if referendum_questions|length == 0 %}
+          {% else %}
           <div class="referendum-empty">ยังไม่มีข้อมูลประชามติในขณะนี้</div>
           {% endif %}
         </div>

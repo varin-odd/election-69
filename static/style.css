@@ -11,6 +11,9 @@
   --paper: #f8efe0;
   --soft: rgba(255, 255, 255, 0.85);
   --shadow: 0 14px 30px rgba(70, 45, 15, 0.22);
+  --stat-red: #d63a49;
+  --stat-green: #1e8c55;
+  --stat-cyan: #27b9e6;
 }
 
 body {
@@ -240,6 +243,46 @@ body {
 .stat-note {
   font-size: 14px;
   opacity: 0.75;
+}
+
+.stat-group-combined .stat-card {
+  color: #fff;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 28px rgba(17, 20, 35, 0.22);
+}
+
+.stat-group-combined .stat-card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.stat-group-combined .stat-title,
+.stat-group-combined .stat-value,
+.stat-group-combined .stat-note {
+  color: #fff;
+}
+
+.stat-group-combined .stat-note {
+  opacity: 0.85;
+}
+
+.stat-card-turnout {
+  background: linear-gradient(180deg, #e44755 0%, var(--stat-red) 100%);
+}
+
+.stat-card-voters {
+  background: linear-gradient(180deg, #219d5f 0%, var(--stat-green) 100%);
+}
+
+.stat-card-ballots {
+  background: linear-gradient(180deg, #32c6ef 0%, var(--stat-cyan) 100%);
 }
 
 .pagination {
