@@ -22,6 +22,9 @@ def get_latest_csv_files():
         pattern = os.path.join(BACKUP_PATH, prefix + "_*.csv")
         files = glob.glob(pattern)
 
+        # บางครั้ง M_CANDIDATES อาจจะไม่มีไฟล์
+        if not files:
+            continue
         latest_file = max(files, key=lambda f: extract_datetime(f, prefix))
         shutil.copy(latest_file, DATA_PATH + f"{prefix}.csv")
         #print(latest_file)
