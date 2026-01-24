@@ -1,5 +1,6 @@
-from config import BACKUP_PATH, DATA_PATH, TS_FORMAT, REALTIME_OR_FINAL
+from config import BACKUP_PATH, DATA_PATH, TS_FORMAT, REALTIME_OR_FINAL, DEBUG
 from datetime import datetime
+import pandas as pd
 import glob, os, shutil
 
 # To-do: เพิ่ม all history files
@@ -8,6 +9,7 @@ M_FEEDS = ["M_ELECTIONS", "M_PROVINCES", "M_PARTY_LIST", "M_CANDIDATES"]
 F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4",
            "F_F_DB_1", "F_F_DB_2", "F_F_DB_3", "F_F_DBD_4"]
 S_FEEDS = ["F_F_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
+LAST_UPDATE = f'{DATA_PATH}LAST_UPDATE.csv'
 
 def extract_datetime(filename, prefix):
     # เอาเฉพาะชื่อไฟล์ ไม่เอา path
@@ -29,14 +31,44 @@ def get_latest_csv_files():
         shutil.copy(latest_file, DATA_PATH + f"{prefix}.csv")
         #print(latest_file)
 
+def lastUpdate_to_csv(df, feedname, lastUpdate):
+    # ทำให้ feedname เป็น key แล้ว upsert
+    df = df.set_index("feedname")
+    df.loc[feedname, "lastUpdate"] = lastUpdate
+    df = df.reset_index()
+
+    # เขียนกลับ
+    df.to_csv(LAST_UPDATE, index=False, encoding="utf-8")
+    return df
+
+def error_log(fromFile, toFile, exception):
+    print(f'ERROR core.py [get_realtime_or_final_files]: File "{fromFile}" --> "{toFile}": {exception}')
 def get_realtime_or_final_files(type):
+    df = pd.read_csv(LAST_UPDATE)
     for prefix in F_FEEDS:
+        fromFile = f"{prefix}.csv"
+        toFile = f"F_{prefix[4:]}.csv"
         if prefix[2] == type[0].upper():
-            shutil.move(DATA_PATH + f"{prefix}.csv", DATA_PATH + f"F_{prefix[4:]}.csv")
+            try:
+                shutil.move(DATA_PATH + fromFile, DATA_PATH + toFile)
+                lastUpdate = df.loc[df['feedname'] == prefix, 'lastUpdate'].iloc[0]
+                if DEBUG: print("move: " + DATA_PATH + fromFile + ", " + DATA_PATH + toFile + ", " + lastUpdate)
+                df = lastUpdate_to_csv(df, toFile[:-4], lastUpdate)
+            except Exception as e: error_log(fromFile, toFile, e)
         else:
-            os.remove(DATA_PATH + f"{prefix}.csv")
+            try:
+                os.remove(DATA_PATH + fromFile)
+                if DEBUG: print("remove: " + DATA_PATH + fromFile)
+            except Exception as e: error_log(fromFile, "REMOVE", e)
     for prefix in S_FEEDS:
-        shutil.move(DATA_PATH + f"{prefix}.csv", DATA_PATH + f"F_{prefix[4:]}.csv")
+        fromFile = f"{prefix}.csv"
+        toFile = f"F_{prefix[4:]}.csv"
+        try:
+            shutil.move(DATA_PATH + fromFile, DATA_PATH + toFile)
+            lastUpdate = df.loc[df['feedname'] == prefix, 'lastUpdate'].iloc[0]
+            if DEBUG: print("move: " + DATA_PATH + fromFile + ", " + DATA_PATH + toFile + ", " + lastUpdate)
+            df = lastUpdate_to_csv(df, toFile[:-4], lastUpdate)
+        except Exception as e: error_log(fromFile, toFile, e)
 
 def main():
     get_latest_csv_files()
