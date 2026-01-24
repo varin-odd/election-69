@@ -29,6 +29,8 @@ def lastUpdate_to_csv(feedname, lastUpdate):
 
     # เขียนกลับ
     df.to_csv(csv_path, index=False, encoding="utf-8")
+def error_log(method, exception):
+    print(f'ERROR feed.py {method}(): {exception}')
 
 def get_all_pages(url, function_name, key_name):
     items = []
@@ -74,8 +76,8 @@ def M_elections():
                 df = pd.DataFrame(data['data']['elections'])
                 M_to_csv(df, 'ELECTIONS')
                 return True
-        raise Exception(f'feed.py: M_elections() failed')
-    except Exception as e: print(e)
+        raise Exception(f"Read '{BASE_URL}/elections' failed.")
+    except Exception as e: error_log("M_elections", e)
 def M_provinces():
     try:
         response = requests.get(f'{BASE_URL}/provinces', headers=HEADERS)
@@ -85,13 +87,13 @@ def M_provinces():
                 df = pd.DataFrame(data['data']['provinces'])
                 M_to_csv(df, 'PROVINCES')
                 return True
-        raise Exception(f'feed.py: M_provinces() failed')
-    except Exception as e: print(e)
+        raise Exception(f"Read '{BASE_URL}/provinces' failed.")
+    except Exception as e: error_log("M_provinces", e)
 
 # Many pages
 def M_party_list(electionId):
     try:
-        partyLists = get_all_pages(f'{BASE_URL}/party-list/{electionId}', 'M_party_list', 'partyLists')
+        partyLists, lastUpdate = get_all_pages(f'{BASE_URL}/party-list/{electionId}', 'M_party_list', 'partyLists')
         df = pd.DataFrame(partyLists)
         df_p = pd.json_normalize(df["party"])
         df = df.join(df_p.add_prefix("party"))
@@ -105,12 +107,12 @@ def M_party_list(electionId):
         df = df[["id", "number", "title", "firstName", "lastName", "name", "photoUrl", "pmCandidateRank",
                 "partyId", "partyCode", "partyName", "partyabbreviation", "partyColor"]]
         M_to_csv(df, 'PARTY_LIST')
-    except Exception as e: print(e)
+    except Exception as e: error_log("M_party_list", e)
 
 # น่าจะไม่ได้ใช้
 def M_candidates():
     try:
-        candidates = get_all_pages(f'{BASE_URL}/candidates', 'M_candidates', 'candidates')
+        candidates, lastUpdate = get_all_pages(f'{BASE_URL}/candidates', 'M_candidates', 'candidates')
         df = pd.DataFrame(candidates)
         df_p = pd.json_normalize(df["party"])
         df = df.join(df_p.add_prefix("party"))
@@ -169,8 +171,8 @@ def F_DB_1_statistics(electionId, type, id, mode):
                         "goodVotes", "totalVotes", "invalidVotes", "noVotes", "eligibleVoters", "voterTurnoutPercentage"]]
                 F_to_csv(df, type, lastUpdate, 'DB_1', mode)
                 return True
-        raise Exception(f'feed.py: F_DB_1_statistics failed')
-    except Exception as e: print(e)
+        raise Exception(f"Read '{BASE_URL}/elections/{electionId}/{type}/statistics' failed.")
+    except Exception as e: error_log("F_DB_1_statistics", e)
 def F_DB_2_3_national_summary(electionId, type):
     try:
         response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/national-summary', headers=HEADERS)
@@ -188,6 +190,8 @@ def F_DB_2_3_national_summary(electionId, type):
                 F_to_csv(df, type, lastUpdate, 'DB_2')
 
                 parties = data['parties']
+                if len(parties) == 0:
+                    raise Exception(f'data["parties"] ไม่มีค่า. ไม่ save file "F_{type[0].upper()}_DB_3.csv"')
                 df = pd.DataFrame(parties)
                 df_p = pd.json_normalize(df["party"])
                 df = df.join(df_p.add_prefix("party"))
@@ -202,8 +206,8 @@ def F_DB_2_3_national_summary(electionId, type):
                         "totalVotes", "constituencySeats", "partyListSeats", "totalSeats", "percentage"]]
                 F_to_csv(df, type, lastUpdate, 'DB_3')
                 return True
-        raise Exception(f'feed.py: F_DB_2_3_national_summary(type="{type}") failed')
-    except Exception as e: print(e)
+        raise Exception(f"Read '{BASE_URL}/elections/{electionId}/{type}/national-summary' failed.")
+    except Exception as e: error_log("F_DB_2_3_national_summary", e)
 
 # Many pages
 def F_DBD_4_candidates(electionId, type):
@@ -223,12 +227,12 @@ def F_DBD_4_candidates(electionId, type):
                 "partyId", "partyCode", "partyName", "partyColor",
                 "totalVotes", "rank", "percentage"]]
         F_to_csv(df, type, lastUpdate, 'DBD_4')
-    except Exception as e: print(e)
+    except Exception as e: error_log("F_DBD_4_candidates", e)
  
 def F_RF_referendum(electionId, type):
     try:
         if type == "realtime":
-            raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed. "เจอปัญหาว่า realtime ไม่มีข้อมูล มีแต่ final"')
+            raise Exception(f'(type="{type}") failed. "เจอปัญหาว่า realtime ไม่มีข้อมูล มีแต่ final"')
 
         response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/referendum', headers=HEADERS)
         if response.status_code == 200:
@@ -236,6 +240,8 @@ def F_RF_referendum(electionId, type):
             if data['success']:
                 lastUpdate = lastUpdate_or_lastUpdated(data['data'])
                 data = data['data']['questions']
+                if len(data) == 0:
+                    raise Exception(f'data["data"]["questions"] ไม่มีค่า. ไม่ save file "F_{type[0].upper()}_RF.csv"')
                 rows = []
                 for q in data:
                     base = {
@@ -261,8 +267,8 @@ def F_RF_referendum(electionId, type):
                         "disagreeOptionNumber", "disagreeTotalVotes", "disagreePercentage", "disagreeRank"]]
                 F_to_csv(df, type, lastUpdate, 'RF')
                 return True
-        raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed')
-    except Exception as e: print(e)
+        raise Exception(f"Read '{BASE_URL}/elections/{electionId}/{type}/referendum' failed.")
+    except Exception as e: error_log("F_RF_referendum", e)
 
 def main():
     if MASTER:
