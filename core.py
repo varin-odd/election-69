@@ -41,8 +41,8 @@ def lastUpdate_to_csv(df, feedname, lastUpdate):
     df.to_csv(LAST_UPDATE, index=False, encoding="utf-8")
     return df
 
-def error_log(fromFile, toFile, exception):
-    print(f'ERROR core.py [get_realtime_or_final_files]: File "{fromFile}" --> "{toFile}": {exception}')
+def error_log(type, fromFile, toFile, exception):
+    print(f'ERROR core.py get_realtime_or_final_files("{type}"): File "{fromFile}" --> "{toFile}": {exception}')
 def get_realtime_or_final_files(type):
     df = pd.read_csv(LAST_UPDATE)
     for prefix in F_FEEDS:
@@ -54,12 +54,12 @@ def get_realtime_or_final_files(type):
                 lastUpdate = df.loc[df['feedname'] == prefix, 'lastUpdate'].iloc[0]
                 if DEBUG: print("move: " + DATA_PATH + fromFile + ", " + DATA_PATH + toFile + ", " + lastUpdate)
                 df = lastUpdate_to_csv(df, toFile[:-4], lastUpdate)
-            except Exception as e: error_log(fromFile, toFile, e)
+            except Exception as e: error_log(type, fromFile, toFile, e)
         else:
             try:
                 os.remove(DATA_PATH + fromFile)
                 if DEBUG: print("remove: " + DATA_PATH + fromFile)
-            except Exception as e: error_log(fromFile, "REMOVE", e)
+            except Exception as e: error_log(type, fromFile, "REMOVE", e)
     for prefix in S_FEEDS:
         fromFile = f"{prefix}.csv"
         toFile = f"F_{prefix[4:]}.csv"
@@ -68,7 +68,7 @@ def get_realtime_or_final_files(type):
             lastUpdate = df.loc[df['feedname'] == prefix, 'lastUpdate'].iloc[0]
             if DEBUG: print("move: " + DATA_PATH + fromFile + ", " + DATA_PATH + toFile + ", " + lastUpdate)
             df = lastUpdate_to_csv(df, toFile[:-4], lastUpdate)
-        except Exception as e: error_log(fromFile, toFile, e)
+        except Exception as e: error_log(type, fromFile, toFile, e)
 
 def main():
     get_latest_csv_files()
