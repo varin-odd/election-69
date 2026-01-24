@@ -1,4 +1,4 @@
-from config import BACKUP_PATH, DATA_PATH, TS_FORMAT
+from config import BACKUP_PATH, DATA_PATH, TS_FORMAT, REALTIME_OR_FINAL
 from datetime import datetime
 import glob, os, shutil
 
@@ -38,6 +38,9 @@ def get_realtime_or_final_files(type):
     for prefix in S_FEEDS:
         shutil.move(DATA_PATH + f"{prefix}.csv", DATA_PATH + f"F_{prefix[4:]}.csv")
 
-if __name__ == "__main__":
+def main():
     get_latest_csv_files()
-    get_realtime_or_final_files("R")
+    get_realtime_or_final_files(REALTIME_OR_FINAL)
+
+if __name__ == "__main__":
+    main()

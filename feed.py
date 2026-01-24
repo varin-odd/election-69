@@ -216,7 +216,7 @@ def F_RF_referendum(electionId, type):
             return True
     raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed')
 
-if __name__ == '__main__':
+def main():
     try:
         if MASTER:
             M_elections()
@@ -253,3 +253,6 @@ if __name__ == '__main__':
 
     except Exception as e:
         print(e)
+
+if __name__ == '__main__':
+    main()

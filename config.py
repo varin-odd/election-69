@@ -15,3 +15,5 @@ MASTER = os.getenv("MASTER") == "true"
 FEED_DB_1_3 = os.getenv("FEED_DB_1_3") == "true"
 FEED_DB_DETAIL_4 = os.getenv("FEED_DB_DETAIL_4") == "true"
 FEED_RF = os.getenv("FEED_RF") == "true"
+
+REALTIME_OR_FINAL = os.getenv("REALTIME_OR_FINAL")
