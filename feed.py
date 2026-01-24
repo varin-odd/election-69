@@ -1,14 +1,40 @@
 from config import BACKUP_PATH, DATA_PATH, TS_FORMAT, BASE_URL, ODD_KEY, DEBUG, MASTER, FEED_DB_1_3, FEED_DB_DETAIL_4, FEED_RF
 from datetime import datetime
 import pandas as pd
-import requests
+import os, requests, util
 
 HEADERS = {'Authorization': 'Bearer ' + ODD_KEY}
+
+def lastUpdate_or_lastUpdated(data):
+    if 'lastUpdate' in data:
+        return data['lastUpdate']
+    elif 'lastUpdated' in data:
+        return data['lastUpdated']
+    else:
+        return "<lastUpdate_not_found>"
+def lastUpdate_to_csv(feedname, lastUpdate):
+    lastUpdate = util.convert_utc_to_bangkok(lastUpdate)
+
+    csv_path = f'{DATA_PATH}LAST_UPDATE.csv'
+    # โหลดไฟล์เดิม (ถ้าไม่มีให้สร้าง df เปล่า)
+    if os.path.exists(csv_path) and os.path.getsize(csv_path) > 0:
+        df = pd.read_csv(csv_path, dtype={"feedname": "string", "lastUpdate": "string"})
+    else:
+        df = pd.DataFrame(columns=["feedname", "lastUpdate"])
+
+    # ทำให้ feedname เป็น key แล้ว upsert
+    df = df.set_index("feedname")
+    df.loc[feedname, "lastUpdate"] = lastUpdate
+    df = df.reset_index()
+
+    # เขียนกลับ
+    df.to_csv(csv_path, index=False, encoding="utf-8")
 
 def get_all_pages(url, function_name, key_name):
     items = []
     page = 1
     limit = 1000
+    lastUpdate = None
 
     while True:
         paged_url = f'{url}?page={page}&limit={limit}'
@@ -23,6 +49,8 @@ def get_all_pages(url, function_name, key_name):
         # ดึงข้อมูลของหน้านั้น
         cd = data["data"][key_name]
         items.extend(cd)
+        lastUpdate = lastUpdate_or_lastUpdated(data["data"])
+
         # อ่านข้อมูล pagination
         pagination = data["data"]["pagination"]
         total_pages = pagination["totalPages"]
@@ -32,7 +60,7 @@ def get_all_pages(url, function_name, key_name):
             break
         page += 1
 
-    return items
+    return items, lastUpdate
 
 def M_to_csv(df, filename):
     df.to_csv(f'{BACKUP_PATH}M_{filename}_{datetime.now().strftime(TS_FORMAT)}.csv', index=False, encoding="utf-8-sig")
@@ -109,7 +137,7 @@ def M_candidates():
              "electionAreaId", "electionAreaName", "electionAreaAreaNumber"]]
     M_to_csv(df, 'CANDIDATES')
 
-def F_to_csv(df, type, filename, mode='w'):
+def F_to_csv(df, type, lastUpdate, filename, mode='w'):
     backup = f'{BACKUP_PATH}F_{type[0].upper()}_{filename}_{datetime.now().strftime(TS_FORMAT)}.csv'
     data = f'{DATA_PATH}F_{type[0].upper()}_{filename}.csv'
     if mode == 'w':
@@ -118,17 +146,19 @@ def F_to_csv(df, type, filename, mode='w'):
     elif mode == 'a':
         df.to_csv(backup, index=False, encoding="utf-8-sig", header=False, mode='a')
         df.to_csv(data, index=False, encoding="utf-8-sig", header=False, mode='a')
+    
+    lastUpdate_to_csv(f'F_{type[0].upper()}_{filename}', lastUpdate)
 def F_DB_1_statistics(electionId, type, id, mode):
     response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/statistics', headers=HEADERS)
     if response.status_code == 200:
         data = response.json()
         if data['success']:
-            #print(data['data'])
+            lastUpdate = lastUpdate_or_lastUpdated(data['data'])
             df = pd.DataFrame([data['data']['statistics']])
             df['election_id'] = id
             df = df[["election_id",
                      "goodVotes", "totalVotes", "invalidVotes", "noVotes", "eligibleVoters", "voterTurnoutPercentage"]]
-            F_to_csv(df, type, 'DB_1', mode)
+            F_to_csv(df, type, lastUpdate, 'DB_1', mode)
             return True
     raise Exception(f'feed.py: F_DB_1_statistics failed')
 def F_DB_2_3_national_summary(electionId, type):
@@ -137,13 +167,14 @@ def F_DB_2_3_national_summary(electionId, type):
         data = response.json()
         if data['success']:
             data = data['data']
+            lastUpdate = lastUpdate_or_lastUpdated(data)
             df = pd.DataFrame({
                 'totalConstituencySeats': [data['totalConstituencySeats']],
                 'totalPartyListSeats': [data['totalPartyListSeats']],
                 'totalSeats': [data['totalSeats']],
                 'totalVotes': [data['totalVotes']]
             })
-            F_to_csv(df, type, 'DB_2')
+            F_to_csv(df, type, lastUpdate, 'DB_2')
 
             parties = data['parties']
             df = pd.DataFrame(parties)
@@ -158,13 +189,13 @@ def F_DB_2_3_national_summary(electionId, type):
                 })
             df = df[["partyId", "partyCode", "partyName", "partyColor",
                      "totalVotes", "constituencySeats", "partyListSeats", "totalSeats", "percentage"]]
-            F_to_csv(df, type, 'DB_3')
+            F_to_csv(df, type, lastUpdate, 'DB_3')
             return True
     raise Exception(f'feed.py: F_DB_2_3_national_summary(type="{type}") failed')
 
 # Many pages
 def F_DBD_4_candidates(electionId, type):
-    candidates = get_all_pages(f'{BASE_URL}/elections/{electionId}/{type}/candidates', 'F_DBD_4_candidates(type="{type}")', 'candidates')
+    candidates, lastUpdate = get_all_pages(f'{BASE_URL}/elections/{electionId}/{type}/candidates', 'F_DBD_4_candidates(type="{type}")', 'candidates')
     df = pd.DataFrame(candidates)
     df_p = pd.json_normalize(df["party"])
     df = df.join(df_p.add_prefix("party"))
@@ -178,7 +209,7 @@ def F_DBD_4_candidates(electionId, type):
     df = df[["id", "number", "name", "provinceCode", "provinceName", "areaNumber",
              "partyId", "partyCode", "partyName", "partyColor",
              "totalVotes", "rank", "percentage"]]
-    F_to_csv(df, type, 'DBD_4')
+    F_to_csv(df, type, lastUpdate, 'DBD_4')
  
 def F_RF_referendum(electionId, type):
     if type == "realtime":
@@ -188,6 +219,7 @@ def F_RF_referendum(electionId, type):
     if response.status_code == 200:
         data = response.json()
         if data['success']:
+            lastUpdate = lastUpdate_or_lastUpdated(data['data'])
             data = data['data']['questions']
             rows = []
             for q in data:
@@ -212,7 +244,7 @@ def F_RF_referendum(electionId, type):
             df = df[["questionNumber", "questionText", "goodVotes", "totalVotes", "invalidVotes", "noVotes",
                      "agreeOptionNumber", "agreeTotalVotes", "agreePercentage", "agreeRank",
                      "disagreeOptionNumber", "disagreeTotalVotes", "disagreePercentage", "disagreeRank"]]
-            F_to_csv(df, type, 'RF')
+            F_to_csv(df, type, lastUpdate, 'RF')
             return True
     raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed')
 
