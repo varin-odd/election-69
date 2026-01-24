@@ -66,76 +66,84 @@ def M_to_csv(df, filename):
     df.to_csv(f'{BACKUP_PATH}M_{filename}_{datetime.now().strftime(TS_FORMAT)}.csv', index=False, encoding="utf-8-sig")
     df.to_csv(f'{DATA_PATH}M_{filename}.csv', index=False, encoding="utf-8-sig")
 def M_elections():
-    response = requests.get(f'{BASE_URL}/elections', headers=HEADERS)
-    if response.status_code == 200:
-        data = response.json()
-        if data['success']:
-            df = pd.DataFrame(data['data']['elections'])
-            M_to_csv(df, 'ELECTIONS')
-            return True
-    raise Exception(f'feed.py: M_elections() failed')
+    try:
+        response = requests.get(f'{BASE_URL}/elections', headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                df = pd.DataFrame(data['data']['elections'])
+                M_to_csv(df, 'ELECTIONS')
+                return True
+        raise Exception(f'feed.py: M_elections() failed')
+    except Exception as e: print(e)
 def M_provinces():
-    response = requests.get(f'{BASE_URL}/provinces', headers=HEADERS)
-    if response.status_code == 200:
-        data = response.json()
-        if data['success']:
-            df = pd.DataFrame(data['data']['provinces'])
-            M_to_csv(df, 'PROVINCES')
-            return True
-    raise Exception(f'feed.py: M_provinces() failed')
+    try:
+        response = requests.get(f'{BASE_URL}/provinces', headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                df = pd.DataFrame(data['data']['provinces'])
+                M_to_csv(df, 'PROVINCES')
+                return True
+        raise Exception(f'feed.py: M_provinces() failed')
+    except Exception as e: print(e)
 
 # Many pages
 def M_party_list(electionId):
-    partyLists = get_all_pages(f'{BASE_URL}/party-list/{electionId}', 'M_party_list', 'partyLists')
-    df = pd.DataFrame(partyLists)
-    df_p = pd.json_normalize(df["party"])
-    df = df.join(df_p.add_prefix("party"))
-    df = df.rename(columns=
-        {
-            "partyid": "partyId",
-            "partycode": "partyCode",
-            "partyname": "partyName",
-            "partycolor": "partyColor"
-        })
-    df = df[["id", "number", "title", "firstName", "lastName", "name", "photoUrl", "pmCandidateRank",
-             "partyId", "partyCode", "partyName", "partyabbreviation", "partyColor"]]
-    M_to_csv(df, 'PARTY_LIST')
+    try:
+        partyLists = get_all_pages(f'{BASE_URL}/party-list/{electionId}', 'M_party_list', 'partyLists')
+        df = pd.DataFrame(partyLists)
+        df_p = pd.json_normalize(df["party"])
+        df = df.join(df_p.add_prefix("party"))
+        df = df.rename(columns=
+            {
+                "partyid": "partyId",
+                "partycode": "partyCode",
+                "partyname": "partyName",
+                "partycolor": "partyColor"
+            })
+        df = df[["id", "number", "title", "firstName", "lastName", "name", "photoUrl", "pmCandidateRank",
+                "partyId", "partyCode", "partyName", "partyabbreviation", "partyColor"]]
+        M_to_csv(df, 'PARTY_LIST')
+    except Exception as e: print(e)
 
 # น่าจะไม่ได้ใช้
 def M_candidates():
-    candidates = get_all_pages(f'{BASE_URL}/candidates', 'M_candidates', 'candidates')
-    df = pd.DataFrame(candidates)
-    df_p = pd.json_normalize(df["party"])
-    df = df.join(df_p.add_prefix("party"))
-    df = df.rename(columns=
-        {
-            "partyid": "partyId",
-            "partycode": "partyCode",
-            "partyname": "partyName",
-            "partycolor": "partyColor"
-        })
-    df_p = pd.json_normalize(df["province"])
-    df = df.join(df_p.add_prefix("province"))
-    df = df.rename(columns=
-        {
-            "provinceid": "provinceId",
-            "provincecode": "provinceCode",
-            "provincename": "provinceName",
-            "provinceregion": "provinceRegion"
-        })
-    df_p = pd.json_normalize(df["electionArea"])
-    df = df.join(df_p.add_prefix("electionArea"))
-    df = df.rename(columns=
-        {
-            "electionAreaid": "electionAreaId",
-            "electionAreaname": "electionAreaName",
-            "electionAreaareaNumber": "electionAreaAreaNumber",
-        })
-    df = df[["id", "electionId", "electionAreaId", "number", "title", "firstName", "lastName", "name", "photoUrl",
-             "partyId", "partyCode", "partyName", "partyColor",
-             "provinceId", "provinceCode", "provinceName", "provinceRegion",
-             "electionAreaId", "electionAreaName", "electionAreaAreaNumber"]]
-    M_to_csv(df, 'CANDIDATES')
+    try:
+        candidates = get_all_pages(f'{BASE_URL}/candidates', 'M_candidates', 'candidates')
+        df = pd.DataFrame(candidates)
+        df_p = pd.json_normalize(df["party"])
+        df = df.join(df_p.add_prefix("party"))
+        df = df.rename(columns=
+            {
+                "partyid": "partyId",
+                "partycode": "partyCode",
+                "partyname": "partyName",
+                "partycolor": "partyColor"
+            })
+        df_p = pd.json_normalize(df["province"])
+        df = df.join(df_p.add_prefix("province"))
+        df = df.rename(columns=
+            {
+                "provinceid": "provinceId",
+                "provincecode": "provinceCode",
+                "provincename": "provinceName",
+                "provinceregion": "provinceRegion"
+            })
+        df_p = pd.json_normalize(df["electionArea"])
+        df = df.join(df_p.add_prefix("electionArea"))
+        df = df.rename(columns=
+            {
+                "electionAreaid": "electionAreaId",
+                "electionAreaname": "electionAreaName",
+                "electionAreaareaNumber": "electionAreaAreaNumber",
+            })
+        df = df[["id", "electionId", "electionAreaId", "number", "title", "firstName", "lastName", "name", "photoUrl",
+                "partyId", "partyCode", "partyName", "partyColor",
+                "provinceId", "provinceCode", "provinceName", "provinceRegion",
+                "electionAreaId", "electionAreaName", "electionAreaAreaNumber"]]
+        M_to_csv(df, 'CANDIDATES')
+    except Exception as e: print(e)
 
 def F_to_csv(df, type, lastUpdate, filename, mode='w'):
     backup = f'{BACKUP_PATH}F_{type[0].upper()}_{filename}_{datetime.now().strftime(TS_FORMAT)}.csv'
@@ -149,142 +157,146 @@ def F_to_csv(df, type, lastUpdate, filename, mode='w'):
     
     lastUpdate_to_csv(f'F_{type[0].upper()}_{filename}', lastUpdate)
 def F_DB_1_statistics(electionId, type, id, mode):
-    response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/statistics', headers=HEADERS)
-    if response.status_code == 200:
-        data = response.json()
-        if data['success']:
-            lastUpdate = lastUpdate_or_lastUpdated(data['data'])
-            df = pd.DataFrame([data['data']['statistics']])
-            df['election_id'] = id
-            df = df[["election_id",
-                     "goodVotes", "totalVotes", "invalidVotes", "noVotes", "eligibleVoters", "voterTurnoutPercentage"]]
-            F_to_csv(df, type, lastUpdate, 'DB_1', mode)
-            return True
-    raise Exception(f'feed.py: F_DB_1_statistics failed')
+    try:
+        response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/statistics', headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                lastUpdate = lastUpdate_or_lastUpdated(data['data'])
+                df = pd.DataFrame([data['data']['statistics']])
+                df['election_id'] = id
+                df = df[["election_id",
+                        "goodVotes", "totalVotes", "invalidVotes", "noVotes", "eligibleVoters", "voterTurnoutPercentage"]]
+                F_to_csv(df, type, lastUpdate, 'DB_1', mode)
+                return True
+        raise Exception(f'feed.py: F_DB_1_statistics failed')
+    except Exception as e: print(e)
 def F_DB_2_3_national_summary(electionId, type):
-    response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/national-summary', headers=HEADERS)
-    if response.status_code == 200:
-        data = response.json()
-        if data['success']:
-            data = data['data']
-            lastUpdate = lastUpdate_or_lastUpdated(data)
-            df = pd.DataFrame({
-                'totalConstituencySeats': [data['totalConstituencySeats']],
-                'totalPartyListSeats': [data['totalPartyListSeats']],
-                'totalSeats': [data['totalSeats']],
-                'totalVotes': [data['totalVotes']]
-            })
-            F_to_csv(df, type, lastUpdate, 'DB_2')
-
-            parties = data['parties']
-            df = pd.DataFrame(parties)
-            df_p = pd.json_normalize(df["party"])
-            df = df.join(df_p.add_prefix("party"))
-            df = df.rename(columns=
-                {
-                    "partyid": "partyId",
-                    "partycode": "partyCode",
-                    "partyname": "partyName",
-                    "partycolor": "partyColor"
+    try:
+        response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/national-summary', headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                data = data['data']
+                lastUpdate = lastUpdate_or_lastUpdated(data)
+                df = pd.DataFrame({
+                    'totalConstituencySeats': [data['totalConstituencySeats']],
+                    'totalPartyListSeats': [data['totalPartyListSeats']],
+                    'totalSeats': [data['totalSeats']],
+                    'totalVotes': [data['totalVotes']]
                 })
-            df = df[["partyId", "partyCode", "partyName", "partyColor",
-                     "totalVotes", "constituencySeats", "partyListSeats", "totalSeats", "percentage"]]
-            F_to_csv(df, type, lastUpdate, 'DB_3')
-            return True
-    raise Exception(f'feed.py: F_DB_2_3_national_summary(type="{type}") failed')
+                F_to_csv(df, type, lastUpdate, 'DB_2')
+
+                parties = data['parties']
+                df = pd.DataFrame(parties)
+                df_p = pd.json_normalize(df["party"])
+                df = df.join(df_p.add_prefix("party"))
+                df = df.rename(columns=
+                    {
+                        "partyid": "partyId",
+                        "partycode": "partyCode",
+                        "partyname": "partyName",
+                        "partycolor": "partyColor"
+                    })
+                df = df[["partyId", "partyCode", "partyName", "partyColor",
+                        "totalVotes", "constituencySeats", "partyListSeats", "totalSeats", "percentage"]]
+                F_to_csv(df, type, lastUpdate, 'DB_3')
+                return True
+        raise Exception(f'feed.py: F_DB_2_3_national_summary(type="{type}") failed')
+    except Exception as e: print(e)
 
 # Many pages
 def F_DBD_4_candidates(electionId, type):
-    candidates, lastUpdate = get_all_pages(f'{BASE_URL}/elections/{electionId}/{type}/candidates', 'F_DBD_4_candidates(type="{type}")', 'candidates')
-    df = pd.DataFrame(candidates)
-    df_p = pd.json_normalize(df["party"])
-    df = df.join(df_p.add_prefix("party"))
-    df = df.rename(columns=
-        {
-            "partyid": "partyId",
-            "partycode": "partyCode",
-            "partyname": "partyName",
-            "partycolor": "partyColor"
-        })
-    df = df[["id", "number", "name", "provinceCode", "provinceName", "areaNumber",
-             "partyId", "partyCode", "partyName", "partyColor",
-             "totalVotes", "rank", "percentage"]]
-    F_to_csv(df, type, lastUpdate, 'DBD_4')
+    try:
+        candidates, lastUpdate = get_all_pages(f'{BASE_URL}/elections/{electionId}/{type}/candidates', 'F_DBD_4_candidates(type="{type}")', 'candidates')
+        df = pd.DataFrame(candidates)
+        df_p = pd.json_normalize(df["party"])
+        df = df.join(df_p.add_prefix("party"))
+        df = df.rename(columns=
+            {
+                "partyid": "partyId",
+                "partycode": "partyCode",
+                "partyname": "partyName",
+                "partycolor": "partyColor"
+            })
+        df = df[["id", "number", "name", "provinceCode", "provinceName", "areaNumber",
+                "partyId", "partyCode", "partyName", "partyColor",
+                "totalVotes", "rank", "percentage"]]
+        F_to_csv(df, type, lastUpdate, 'DBD_4')
+    except Exception as e: print(e)
  
 def F_RF_referendum(electionId, type):
-    if type == "realtime":
-        raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed. "เจอปัญหาว่า realtime ไม่มีข้อมูล มีแต่ final"')
+    try:
+        if type == "realtime":
+            raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed. "เจอปัญหาว่า realtime ไม่มีข้อมูล มีแต่ final"')
 
-    response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/referendum', headers=HEADERS)
-    if response.status_code == 200:
-        data = response.json()
-        if data['success']:
-            lastUpdate = lastUpdate_or_lastUpdated(data['data'])
-            data = data['data']['questions']
-            rows = []
-            for q in data:
-                base = {
-                    "questionNumber": q["questionNumber"],
-                    "questionText": q["questionText"],
-                    "goodVotes": q["goodVotes"],
-                    "totalVotes": q["totalVotes"],
-                    "invalidVotes": q["invalidVotes"],
-                    "noVotes": q["noVotes"],
-                }
+        response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/referendum', headers=HEADERS)
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                lastUpdate = lastUpdate_or_lastUpdated(data['data'])
+                data = data['data']['questions']
+                rows = []
+                for q in data:
+                    base = {
+                        "questionNumber": q["questionNumber"],
+                        "questionText": q["questionText"],
+                        "goodVotes": q["goodVotes"],
+                        "totalVotes": q["totalVotes"],
+                        "invalidVotes": q["invalidVotes"],
+                        "noVotes": q["noVotes"],
+                    }
 
-                for opt in q["options"]:
-                    prefix = opt["optionCode"]  # agree / disagree
-                    base[f"{prefix}OptionNumber"] = opt["optionNumber"]
-                    base[f"{prefix}TotalVotes"] = opt["totalVotes"]
-                    base[f"{prefix}Percentage"] = opt["percentage"]
-                    base[f"{prefix}Rank"] = opt["rank"]
+                    for opt in q["options"]:
+                        prefix = opt["optionCode"]  # agree / disagree
+                        base[f"{prefix}OptionNumber"] = opt["optionNumber"]
+                        base[f"{prefix}TotalVotes"] = opt["totalVotes"]
+                        base[f"{prefix}Percentage"] = opt["percentage"]
+                        base[f"{prefix}Rank"] = opt["rank"]
 
-                rows.append(base)
-            df = pd.DataFrame(rows)
-            df = df[["questionNumber", "questionText", "goodVotes", "totalVotes", "invalidVotes", "noVotes",
-                     "agreeOptionNumber", "agreeTotalVotes", "agreePercentage", "agreeRank",
-                     "disagreeOptionNumber", "disagreeTotalVotes", "disagreePercentage", "disagreeRank"]]
-            F_to_csv(df, type, lastUpdate, 'RF')
-            return True
-    raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed')
+                    rows.append(base)
+                df = pd.DataFrame(rows)
+                df = df[["questionNumber", "questionText", "goodVotes", "totalVotes", "invalidVotes", "noVotes",
+                        "agreeOptionNumber", "agreeTotalVotes", "agreePercentage", "agreeRank",
+                        "disagreeOptionNumber", "disagreeTotalVotes", "disagreePercentage", "disagreeRank"]]
+                F_to_csv(df, type, lastUpdate, 'RF')
+                return True
+        raise Exception(f'feed.py: F_RF_referendum(type="{type}") failed')
+    except Exception as e: print(e)
 
 def main():
-    try:
-        if MASTER:
-            M_elections()
-            M_provinces()
-            # น่าจะไม่ได้ใช้
-            # M_candidates() # มี photoUrl ด้วยแต่พวก party list ไม่มีรายชื่ออยู่ในนี้
+    if MASTER:
+        M_elections()
+        M_provinces()
+        # น่าจะไม่ได้ใช้
+        # M_candidates() # มี photoUrl ด้วยแต่พวก party list ไม่มีรายชื่ออยู่ในนี้
 
-        df = pd.read_csv(DATA_PATH + 'M_ELECTIONS.csv')
-        mp_party_list_id = (df.loc[df["type"] == "mp_party_list", "id"].squeeze())
-        mp_constituency_id = (df.loc[df["type"] == "mp_constituency", "id"].squeeze())
-        referendum_id = (df.loc[df["type"] == "referendum", "id"].squeeze())
+    df = pd.read_csv(DATA_PATH + 'M_ELECTIONS.csv')
+    mp_party_list_id = (df.loc[df["type"] == "mp_party_list", "id"].squeeze())
+    mp_constituency_id = (df.loc[df["type"] == "mp_constituency", "id"].squeeze())
+    referendum_id = (df.loc[df["type"] == "referendum", "id"].squeeze())
 
-        if MASTER:
-            # ส.ส. บัญชีรายชื่อ
-            M_party_list(mp_party_list_id)
+    if MASTER:
+        # ส.ส. บัญชีรายชื่อ
+        M_party_list(mp_party_list_id)
 
-        if FEED_DB_1_3:
-            # อาสาสมัคร
-            F_DB_1_statistics(mp_party_list_id, 'realtime', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-            F_DB_1_statistics(mp_constituency_id, 'realtime', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-            F_DB_2_3_national_summary(mp_party_list_id, 'realtime')
-            # กกต.
-            F_DB_1_statistics(mp_party_list_id, 'final', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-            F_DB_1_statistics(mp_constituency_id, 'final', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-            F_DB_2_3_national_summary(mp_party_list_id, 'final')
-        
-        if FEED_DB_DETAIL_4:
-            F_DBD_4_candidates(mp_constituency_id, 'realtime') # อาสาสมัคร
-            F_DBD_4_candidates(mp_constituency_id, 'final') # กกต.
+    if FEED_DB_1_3:
+        # อาสาสมัคร
+        F_DB_1_statistics(mp_party_list_id, 'realtime', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        F_DB_1_statistics(mp_constituency_id, 'realtime', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        F_DB_2_3_national_summary(mp_party_list_id, 'realtime')
+        # กกต.
+        F_DB_1_statistics(mp_party_list_id, 'final', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        F_DB_1_statistics(mp_constituency_id, 'final', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        F_DB_2_3_national_summary(mp_party_list_id, 'final')
+    
+    if FEED_DB_DETAIL_4:
+        F_DBD_4_candidates(mp_constituency_id, 'realtime') # อาสาสมัคร
+        F_DBD_4_candidates(mp_constituency_id, 'final') # กกต.
 
-        if FEED_RF:
-            # Referundum มีแค่ final ไม่มี realtime
-            F_RF_referendum(referendum_id, 'final')
-
-    except Exception as e:
-        print(e)
+    if FEED_RF:
+        # Referundum มีแค่ final ไม่มี realtime
+        F_RF_referendum(referendum_id, 'final')
 
 if __name__ == '__main__':
     main()
