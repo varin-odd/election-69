@@ -1,0 +1,4 @@
+﻿id,name,slug,type,electionDate,status,bookingStartDate,bookingEndDate,linkedElectionId
+aa6d1466-04b6-4262-a439-163086267bbc,การเลือกตั้งสมาชิกสภาผู้แทนราษฎร แบบแบ่งเขต 2569,mp-constituency-2026,mp_constituency,2026-02-08,active,2025-11-04T10:00:00+00:00,2026-02-06T09:59:00+00:00,
+3a54b2b9-73b2-40b8-8ec5-950534e81316,การลงประชามติ 2569 คำถามเกี่ยวกับการแก้ไขรัฐธรรมนูญ,referendum-constitution-2026,referendum,2026-02-08,active,2025-12-01T00:00:00+00:00,2026-02-07T23:59:59+00:00,aa6d1466-04b6-4262-a439-163086267bbc
+95eb0b9e-48fd-4843-b251-1bf3df609c87,การเลือกตั้งสมาชิกสภาผู้แทนราษฎร แบบบัญชีรายชื่อ 2569,mp-party-list-2026,mp_party_list,2026-02-08,active,2025-11-04T17:00:00+00:00,2026-02-05T16:59:00+00:00,aa6d1466-04b6-4262-a439-163086267bbc

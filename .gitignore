@@ -1,4 +1,4 @@
 __pycache__
 .myenv
-*.csv
+/*.csv
 backup/*.csv

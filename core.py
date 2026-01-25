@@ -68,7 +68,11 @@ def get_realtime_or_final_files(type):
             lastUpdate = df.loc[df['feedname'] == prefix, 'lastUpdate'].iloc[0]
             if DEBUG: print("move: " + DATA_PATH + fromFile + ", " + DATA_PATH + toFile + ", " + lastUpdate)
             df = lastUpdate_to_csv(df, toFile[:-4], lastUpdate)
-        except Exception as e: error_log(type, fromFile, toFile, e)
+        except Exception as e:
+            error_log(type, fromFile, toFile, e)
+            if not os.path.exists(DATA_PATH + toFile):
+                shutil.copy(f'zero_data/{toFile}', DATA_PATH + toFile)
+                print(f'Copied {toFile} from "zero_data"')
 
 def main():
     get_latest_csv_files()
