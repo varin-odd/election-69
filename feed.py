@@ -174,6 +174,7 @@ def F_DB_1_statistics(electionId, type, id, mode):
         raise Exception(f"Read '{BASE_URL}/elections/{electionId}/{type}/statistics' failed.")
     except Exception as e: error_log("F_DB_1_statistics", e)
 def F_DB_2_3_national_summary(electionId, type):
+    data = None
     try:
         response = requests.get(f'{BASE_URL}/elections/{electionId}/{type}/national-summary', headers=HEADERS)
         if response.status_code == 200:
@@ -188,26 +189,37 @@ def F_DB_2_3_national_summary(electionId, type):
                     'totalVotes': [data['totalVotes']]
                 })
                 F_to_csv(df, type, lastUpdate, 'DB_2')
+    except Exception as e: error_log("F_DB_2_national_summary", e)
 
-                parties = data['parties']
-                if len(parties) == 0:
-                    raise Exception(f'data["parties"] ไม่มีค่า. ไม่ save file "F_{type[0].upper()}_DB_3.csv"')
-                df = pd.DataFrame(parties)
-                df_p = pd.json_normalize(df["party"])
-                df = df.join(df_p.add_prefix("party"))
-                df = df.rename(columns=
-                    {
-                        "partyid": "partyId",
-                        "partycode": "partyCode",
-                        "partyname": "partyName",
-                        "partycolor": "partyColor"
-                    })
-                df = df[["partyId", "partyCode", "partyName", "partyColor",
-                        "totalVotes", "constituencySeats", "partyListSeats", "totalSeats", "percentage"]]
-                F_to_csv(df, type, lastUpdate, 'DB_3')
-                return True
+    try:
+        if data is not None:
+            parties = data['parties']
+            if len(parties) == 0:
+                raise Exception(f'data["parties"] ไม่มีค่า. ไม่ save file "F_{type[0].upper()}_DB_3.csv"')
+            df = pd.DataFrame(parties)
+
+            # เติม column ที่ขาดหาย (เจอใน final ที่หาย แต่ realtime มี)
+            for col in ['partyListSeats', 'totalSeats']:
+                if col not in df.columns:
+                    df[col] = 0
+
+            df[['partyListSeats', 'totalSeats']] = df[['partyListSeats', 'totalSeats']].fillna(0)
+
+            df_p = pd.json_normalize(df["party"])
+            df = df.join(df_p.add_prefix("party"))
+            df = df.rename(columns=
+                {
+                    "partyid": "partyId",
+                    "partycode": "partyCode",
+                    "partyname": "partyName",
+                    "partycolor": "partyColor"
+                })
+            df = df[["partyId", "partyCode", "partyName", "partyColor",
+                    "totalVotes", "constituencySeats", "partyListSeats", "totalSeats", "percentage"]]
+            F_to_csv(df, type, lastUpdate, 'DB_3')
+            return True
         raise Exception(f"Read '{BASE_URL}/elections/{electionId}/{type}/national-summary' failed.")
-    except Exception as e: error_log("F_DB_2_3_national_summary", e)
+    except Exception as e: error_log("F_DB_3_national_summary", e)
 
 # Many pages
 def F_DBD_4_candidates(electionId, type):
