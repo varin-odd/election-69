@@ -1,15 +1,18 @@
 from config import BACKUP_PATH, DATA_PATH, TS_FORMAT, REALTIME_OR_FINAL, DEBUG
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import glob, os, shutil
+import argparse
 
 # To-do: เพิ่ม all history files
 
 M_FEEDS = ["M_ELECTIONS", "M_PROVINCES", "M_PARTY_LIST", "M_CANDIDATES"]
-F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4",
-           "F_F_DB_1", "F_F_DB_2", "F_F_DB_3", "F_F_DBD_4",
-           "F_A_DB_1", "F_A_DB_2", "F_A_DB_3", "F_A_DBD_4"]
-S_FEEDS = ["F_F_RF", "F_A_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
+#F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4",
+#           "F_F_DB_1", "F_F_DB_2", "F_F_DB_3", "F_F_DBD_4",
+#           "F_A_DB_1", "F_A_DB_2", "F_A_DB_3", "F_A_DBD_4"]
+#S_FEEDS = ["F_F_RF", "F_A_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
+F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4"]
+S_FEEDS = ["F_F_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
 LAST_UPDATE = f'{DATA_PATH}LAST_UPDATE.csv'
 
 def extract_datetime(filename, prefix):
@@ -20,7 +23,7 @@ def extract_datetime(filename, prefix):
     # แปลงเป็น datetime
     return datetime.strptime(dt_str, TS_FORMAT)
 
-def get_latest_csv_files():
+def get_latest_csv_files(rollback=0):
     for prefix in M_FEEDS + F_FEEDS + S_FEEDS:
         pattern = os.path.join(BACKUP_PATH, prefix + "_*.csv")
         files = glob.glob(pattern)
@@ -29,6 +32,17 @@ def get_latest_csv_files():
         if not files:
             continue
         latest_file = max(files, key=lambda f: extract_datetime(f, prefix))
+        if rollback and rollback > 0:
+            latest_dt = extract_datetime(latest_file, prefix)
+            target_dt = latest_dt - timedelta(minutes=rollback)
+            # หาไฟล์ที่เวลา <= target_dt แล้วเลือกไฟล์ล่าสุดของกลุ่มนั้น
+            candidates = [f for f in files if extract_datetime(f, prefix) <= target_dt]
+            if candidates:
+                latest_file = max(candidates, key=lambda f: extract_datetime(f, prefix))
+            else:
+                # ถ้าไม่มีไฟล์ก่อน target_dt ให้ใช้ไฟล์เก่าที่สุดแทน
+                latest_file = min(files, key=lambda f: extract_datetime(f, prefix))
+        print(latest_file)
         shutil.copy(latest_file, DATA_PATH + f"{prefix}.csv")
         #print(latest_file)
 
@@ -80,7 +94,10 @@ def get_realtime_or_final_files(type):
                 print(f'Copied {toFile} from "zero_data"')
 
 def main():
-    get_latest_csv_files()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--rollback", type=int, default=0, help="minutes to rollback from latest backup")
+    args = parser.parse_args()
+    get_latest_csv_files(rollback=args.rollback)
     get_realtime_or_final_files(REALTIME_OR_FINAL)
 
 if __name__ == "__main__":
