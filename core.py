@@ -7,12 +7,12 @@ import argparse
 # To-do: เพิ่ม all history files
 
 M_FEEDS = ["M_ELECTIONS", "M_PROVINCES", "M_PARTY_LIST", "M_CANDIDATES"]
-F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4",
-           "F_F_DB_1", "F_F_DB_2", "F_F_DB_3", "F_F_DBD_4",
-           "F_A_DB_1", "F_A_DB_2", "F_A_DB_3", "F_A_DBD_4"]
-S_FEEDS = ["F_F_RF", "F_A_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
-#F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4"]
-#S_FEEDS = ["F_F_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
+#F_FEEDS = ["F_R_DB_1", "F_R_DB_2", "F_R_DB_3", "F_R_DBD_4",
+#           "F_F_DB_1", "F_F_DB_2", "F_F_DB_3", "F_F_DBD_4",
+#           "F_A_DB_1", "F_A_DB_2", "F_A_DB_3", "F_A_DBD_4"]
+#S_FEEDS = ["F_F_RF", "F_A_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
+F_FEEDS = ["F_A_DB_1", "F_A_DB_2", "F_A_DB_3", "F_A_DBD_4"]
+S_FEEDS = ["F_A_RF"] # Special FEED ที่มีแค่ Final ไม่มี Realtime
 LAST_UPDATE = f'{DATA_PATH}LAST_UPDATE.csv'
 
 def extract_datetime(filename, prefix):
@@ -42,7 +42,6 @@ def get_latest_csv_files(rollback=0):
             else:
                 # ถ้าไม่มีไฟล์ก่อน target_dt ให้ใช้ไฟล์เก่าที่สุดแทน
                 latest_file = min(files, key=lambda f: extract_datetime(f, prefix))
-        print(latest_file)
         shutil.copy(latest_file, DATA_PATH + f"{prefix}.csv")
         #print(latest_file)
 

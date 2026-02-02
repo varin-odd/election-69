@@ -303,23 +303,23 @@ def main():
         F_DB_1_statistics(mp_constituency_id, 'auto', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
         F_DB_2_3_national_summary(mp_party_list_id, 'auto')
         # อาสาสมัคร
-        F_DB_1_statistics(mp_party_list_id, 'realtime', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-        F_DB_1_statistics(mp_constituency_id, 'realtime', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-        F_DB_2_3_national_summary(mp_party_list_id, 'realtime')
+        #F_DB_1_statistics(mp_party_list_id, 'realtime', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        #F_DB_1_statistics(mp_constituency_id, 'realtime', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        #F_DB_2_3_national_summary(mp_party_list_id, 'realtime')
         # กกต.
-        F_DB_1_statistics(mp_party_list_id, 'final', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-        F_DB_1_statistics(mp_constituency_id, 'final', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
-        F_DB_2_3_national_summary(mp_party_list_id, 'final')
+        #F_DB_1_statistics(mp_party_list_id, 'final', 'p', mode='w') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        #F_DB_1_statistics(mp_constituency_id, 'final', 'c', mode='a') #ขาด 1 value "คะแนนนับแล้ว" คำนวนอย่างไร
+        #F_DB_2_3_national_summary(mp_party_list_id, 'final')
     
     if FEED_DB_DETAIL_4:
         F_DBD_4_candidates(mp_constituency_id, 'auto')
-        F_DBD_4_candidates(mp_constituency_id, 'realtime') # อาสาสมัคร
-        F_DBD_4_candidates(mp_constituency_id, 'final') # กกต.
+        #F_DBD_4_candidates(mp_constituency_id, 'realtime') # อาสาสมัคร
+        #F_DBD_4_candidates(mp_constituency_id, 'final') # กกต.
 
     if FEED_RF:
         F_RF_referendum(referendum_id, 'auto')
         # Referundum มีแค่ final ไม่มี realtime
-        F_RF_referendum(referendum_id, 'final')
+        #F_RF_referendum(referendum_id, 'final')
 
 if __name__ == '__main__':
     main()
